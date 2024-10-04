@@ -1,0 +1,45 @@
+pipeline{
+    agent any
+    environment{ // Describing the path to the WAR file and the Tomcats's webapps
+        WAR_FILE =   "/var/lib/jenkins/workspace/Java-Jenkins-Build/target/HelloWorld.war"
+        TOMCAT_WEBAPP_DIR = "/home/chris/Downloads/apache-tomcat-10.1.30/webapps"
+        TOMCAT_BIN = "/home/chris/Downloads/apache-tomcat-10.1.30/bin"
+    }
+
+    stages{
+        stage("Checkout the code"){
+            steps{
+                git branch: "main", url: "https://github.com/chris69-bit/ProjectTwo.git"
+            }
+        }
+
+        stage("Build"){
+            steps{
+                sh "mvn clean package"
+            }
+        }
+
+        stage("Deploy to Tomcat")
+            steps{
+                sh "${TOMCAT_BIN}/shutdown.sh"
+                sh "cp ${WAR_FILE} ${TOMCAT_WEBAPP_DIR}"
+            }
+
+        stage("Start tomcat server"){
+            steps{ // This steps occurs only if your tomcat server was stopped
+                 sh "${TOMCAT_BIN}/startup.sh"
+            }
+        }
+    }
+    post{
+        always{
+            echo "The Deployment process was complete"
+        }
+        success{
+            echo "pipeline was executed successfully"
+        }
+        failure{
+            echo "pipeline execution failed"
+        }
+    }
+}
