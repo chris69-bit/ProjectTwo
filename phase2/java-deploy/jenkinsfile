@@ -1,0 +1,72 @@
+pipeline{
+    agent any
+    stages{
+        stage("Checkout the SCM"){
+            steps{
+                git branch: "main", url: "https://github.com/chris69-bit/ProjectTwo.git"
+            }
+        }
+
+        stage("Building"){
+            steps{  // BUild from the java code
+                sh "./gradlew build"
+            }
+        }
+
+        stage("Unit Test"){
+            steps{  // Run unit test
+                sh "./gradlew test"
+            }
+        }
+
+        stage("Code coverage"){
+            steps{ // Generate code coverage report for the code
+                sh "./gradlew jacocoTestReport"
+
+                publishHTML (target: [
+                    reportDir: "build/reports/jacoco/test/html",
+                    reportFiles: "index.html",
+                    reportName: "JaCoCo Report"
+                ]) // Publish Jacoco HTML report in jenkins
+
+                sh "./ gradlew jacocoTestCoverageVerification"
+            }
+        }
+
+        stage("Static code analysis"){
+            steps{
+                sh "./gradlew checkstyleMain"
+
+                publishHTML (target: [
+                    reportDir: "build/reports/checkstyle",
+                    reportFiles: "main.html",
+                    reportName: "Checkstyle Report"
+                ])
+            }
+        }
+
+        stage("Build an Image"){
+            steps{
+                sh "docker build -t java-deploy ."
+            }
+        }
+
+        stage("Push Image to DockerHub"){
+            steps{
+                sh "docker tag java-deploy chrispined/java-stuff:java-deploy-1.0"
+                sh "docker push chrispined/java-stuff:java-deploy-1.0"
+            }
+        }
+    }
+    post{
+        always{
+            echo "========always========"
+        }
+        success{
+            echo "========pipeline executed successfully ========"
+        }
+        failure{
+            echo "========pipeline execution failed========"
+        }
+    }
+}
