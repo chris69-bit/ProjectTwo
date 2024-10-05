@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'jacoco'  // Plugin for code coverage
+    id 'checkstyle'  // Plugin for static code analysis
+}
+
+group 'com.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()  // Maven central repository for dependencies
+}
+
+dependencies {
+    // JUnit 5 for unit testing
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+
+    // AssertJ for fluent assertions (optional, just for better assertions)
+    testImplementation 'org.assertj:assertj-core:3.19.0'
+}
+
+test {
+    useJUnitPlatform()  // Use JUnit 5 platform for running tests
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
+}
+
+checkstyle {
+    toolVersion = '8.36'
+    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+}
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'com.example.Calculator'  // Main class to execute the application
+        )
+    }
+}
+
